@@ -9,6 +9,13 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
+/* Enum definitions */
+typedef enum _LogControl_Command {
+    LogControl_Command_START = 0,
+    LogControl_Command_STOP = 1,
+    LogControl_Command_CLEAR = 2
+} LogControl_Command;
+
 /* Struct definitions */
 typedef struct _SensorData {
     float temperature;
@@ -17,20 +24,44 @@ typedef struct _SensorData {
     uint64_t interval;
 } SensorData;
 
+typedef struct _LogPacket {
+    pb_callback_t entries;
+} LogPacket;
+
+typedef struct _LogControl {
+    LogControl_Command command;
+} LogControl;
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/* Helper constants for enums */
+#define _LogControl_Command_MIN LogControl_Command_START
+#define _LogControl_Command_MAX LogControl_Command_CLEAR
+#define _LogControl_Command_ARRAYSIZE ((LogControl_Command)(LogControl_Command_CLEAR+1))
+
+
+
+#define LogControl_command_ENUMTYPE LogControl_Command
+
+
 /* Initializer values for message structs */
 #define SensorData_init_default                  {0, 0, 0, 0}
+#define LogPacket_init_default                   {{{NULL}, NULL}}
+#define LogControl_init_default                  {_LogControl_Command_MIN}
 #define SensorData_init_zero                     {0, 0, 0, 0}
+#define LogPacket_init_zero                      {{{NULL}, NULL}}
+#define LogControl_init_zero                     {_LogControl_Command_MIN}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define SensorData_temperature_tag               1
 #define SensorData_humidity_tag                  2
 #define SensorData_timestamp_tag                 3
 #define SensorData_interval_tag                  4
+#define LogPacket_entries_tag                    1
+#define LogControl_command_tag                   1
 
 /* Struct field encoding specification for nanopb */
 #define SensorData_FIELDLIST(X, a) \
@@ -41,12 +72,29 @@ X(a, STATIC,   SINGULAR, UINT64,   interval,          4)
 #define SensorData_CALLBACK NULL
 #define SensorData_DEFAULT NULL
 
+#define LogPacket_FIELDLIST(X, a) \
+X(a, CALLBACK, REPEATED, MESSAGE,  entries,           1)
+#define LogPacket_CALLBACK pb_default_field_callback
+#define LogPacket_DEFAULT NULL
+#define LogPacket_entries_MSGTYPE SensorData
+
+#define LogControl_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, UENUM,    command,           1)
+#define LogControl_CALLBACK NULL
+#define LogControl_DEFAULT NULL
+
 extern const pb_msgdesc_t SensorData_msg;
+extern const pb_msgdesc_t LogPacket_msg;
+extern const pb_msgdesc_t LogControl_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define SensorData_fields &SensorData_msg
+#define LogPacket_fields &LogPacket_msg
+#define LogControl_fields &LogControl_msg
 
 /* Maximum encoded size of messages (where known) */
+/* LogPacket_size depends on runtime parameters */
+#define LogControl_size                          2
 #define SENSOR_PB_H_MAX_SIZE                     SensorData_size
 #define SensorData_size                          32
 

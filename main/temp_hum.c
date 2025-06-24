@@ -1,80 +1,99 @@
 #include "temp_hum.h"
+#include "ble.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <esp_log.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-#include "ble.h"
+#include "esp_log.h"
+#include "esp_timer.h"
+
+#include "log_ble.h"
 
 static const char *TAG = "TEMP_HUM";
 
-// Dados simulados
+static esp_timer_handle_t timer_handle;
+
 static float temperature = 25.0;
 static float humidity = 50.0;
 
-// Referência para o interval configurado via BLE
 static uint64_t *interval_ptr = NULL;
 
-/// ================================
-/// Task que atualiza dados periodicamente
-/// ================================
-void temp_hum_task(void *param)
+/// ============================
+/// Geração dos dados simulados
+/// ============================
+static void generate_temp_hum_data(void)
 {
-    while (1)
+    float temp_variation = ((float)(rand() % 100) / 100.0f) - 0.5f;
+    float hum_variation = ((float)(rand() % 100) / 100.0f) - 0.5f;
+
+    temperature += temp_variation;
+    humidity += hum_variation;
+
+    if (temperature < 15.0f)
+        temperature = 15.0f;
+    if (temperature > 35.0f)
+        temperature = 35.0f;
+
+    if (humidity < 20.0f)
+        humidity = 20.0f;
+    if (humidity > 80.0f)
+        humidity = 80.0f;
+
+    uint64_t timestamp = esp_timer_get_time() / 1000; // Em milissegundos
+
+    ESP_LOGI(TAG, "Nova leitura -> Temp: %.2f C | Hum: %.2f %% | Timestamp: %llu", temperature, humidity, timestamp);
+
+    //Notifica BLE
+    ble_notify_sensor();
+
+    // ✅ Salvar no log
+    log_ble_add_entry(temperature, humidity, timestamp);
+
+}
+
+/// ============================
+/// Callback do Timer
+/// ============================
+static void timer_callback(void *arg)
+{
+    generate_temp_hum_data();
+
+    if (interval_ptr)
     {
-        // Atualiza dados simulados
-        float temp_variation = ((float)(rand() % 100) / 100.0f) - 0.5f;
-        float hum_variation = ((float)(rand() % 100) / 100.0f) - 0.5f;
-
-        temperature += temp_variation;
-        humidity += hum_variation;
-
-        if (temperature < 15.0) temperature = 15.0;
-        if (temperature > 35.0) temperature = 35.0;
-
-        if (humidity < 30.0) humidity = 30.0;
-        if (humidity > 90.0) humidity = 90.0;
-
-        ESP_LOGI(TAG, "Temp: %.2f ºC, Hum: %.2f %%", temperature, humidity);
-
-        //Gera notificação para o BLE
-        ble_notify_sensor();
-
-        // Delay baseado no interval configurado via BLE
         uint64_t interval_ms = (*interval_ptr) * 1000;
-        if (interval_ms < 1000)
-        {
-            interval_ms = 1000; // Intervalo mínimo de segurança
-        }
-
-        vTaskDelay(pdMS_TO_TICKS(interval_ms));
+        esp_timer_stop(timer_handle);
+        esp_timer_start_periodic(timer_handle, interval_ms * 1000); // Intervalo em microssegundos
     }
 }
 
-/// ================================
-/// Inicializa o gerador de dados
-/// ================================
-void temp_hum_init(uint64_t *interval_ref)
+/// ============================
+/// Inicialização do módulo
+/// ============================
+void temp_hum_init(uint64_t *interval_reference)
 {
-    srand(time(NULL));
-    interval_ptr = interval_ref;
+    interval_ptr = interval_reference;
 
-    ESP_LOGI(TAG, "Iniciando sensor simulado de Temp/Hum com intervalo de %llu segundos", *interval_ref);
+    srand((unsigned int)time(NULL)); // Inicializa seed do rand()
 
-    xTaskCreate(temp_hum_task, "temp_hum_task", 2048, NULL, 5, NULL);
+    const esp_timer_create_args_t timer_args = {
+        .callback = &timer_callback,
+        .name = "temp_hum_timer"};
+
+    ESP_ERROR_CHECK(esp_timer_create(&timer_args, &timer_handle));
+
+    uint64_t interval_ms = (*interval_ptr) * 1000;
+    ESP_ERROR_CHECK(esp_timer_start_periodic(timer_handle, interval_ms * 1000));
+
+    ESP_LOGI(TAG, "Módulo TEMP_HUM inicializado com intervalo de %llu segundos", *interval_ptr);
 }
 
-/// ================================
-/// Retorna a temperatura atual
-/// ================================
+/// ============================
+/// Acesso aos dados atuais
+/// ============================
 float get_temperature(void)
 {
     return temperature;
 }
 
-/// ================================
-/// Retorna a umidade atual
-/// ================================
 float get_humidity(void)
 {
     return humidity;

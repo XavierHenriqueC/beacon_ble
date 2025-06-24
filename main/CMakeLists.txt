@@ -3,6 +3,7 @@ idf_component_register(
         "main.c"
         "ble.c"
         "temp_hum.c"
+        "log_ble.c"
         "sensor.pb.c"
     INCLUDE_DIRS "."
     REQUIRES 
