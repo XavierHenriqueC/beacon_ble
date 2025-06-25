@@ -5,6 +5,7 @@ idf_component_register(
         "temp_hum.c"
         "log_ble.c"
         "sensor.pb.c"
+        "serial.c"
     INCLUDE_DIRS "."
     REQUIRES 
         bt 

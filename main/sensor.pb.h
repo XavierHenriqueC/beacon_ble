@@ -30,6 +30,7 @@ typedef struct _LogPacket {
 
 typedef struct _LogControl {
     LogControl_Command command;
+    uint32_t total_entries; /* <-- Campo adicionado para informar quantidade de logs */
 } LogControl;
 
 
@@ -50,10 +51,10 @@ extern "C" {
 /* Initializer values for message structs */
 #define SensorData_init_default                  {0, 0, 0, 0}
 #define LogPacket_init_default                   {{{NULL}, NULL}}
-#define LogControl_init_default                  {_LogControl_Command_MIN}
+#define LogControl_init_default                  {_LogControl_Command_MIN, 0}
 #define SensorData_init_zero                     {0, 0, 0, 0}
 #define LogPacket_init_zero                      {{{NULL}, NULL}}
-#define LogControl_init_zero                     {_LogControl_Command_MIN}
+#define LogControl_init_zero                     {_LogControl_Command_MIN, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define SensorData_temperature_tag               1
@@ -62,6 +63,7 @@ extern "C" {
 #define SensorData_interval_tag                  4
 #define LogPacket_entries_tag                    1
 #define LogControl_command_tag                   1
+#define LogControl_total_entries_tag             2
 
 /* Struct field encoding specification for nanopb */
 #define SensorData_FIELDLIST(X, a) \
@@ -79,7 +81,8 @@ X(a, CALLBACK, REPEATED, MESSAGE,  entries,           1)
 #define LogPacket_entries_MSGTYPE SensorData
 
 #define LogControl_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UENUM,    command,           1)
+X(a, STATIC,   SINGULAR, UENUM,    command,           1) \
+X(a, STATIC,   SINGULAR, UINT32,   total_entries,     2)
 #define LogControl_CALLBACK NULL
 #define LogControl_DEFAULT NULL
 
@@ -94,7 +97,7 @@ extern const pb_msgdesc_t LogControl_msg;
 
 /* Maximum encoded size of messages (where known) */
 /* LogPacket_size depends on runtime parameters */
-#define LogControl_size                          2
+#define LogControl_size                          8
 #define SENSOR_PB_H_MAX_SIZE                     SensorData_size
 #define SensorData_size                          32
 

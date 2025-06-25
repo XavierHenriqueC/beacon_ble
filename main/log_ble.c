@@ -4,9 +4,15 @@
 #include "nvs.h"
 #include "esp_log.h"
 #include "pb_encode.h"
+#include "pb_decode.h"
+#include "host/ble_hs.h"
+#include "ble.h"
 
 #define LOG_NAMESPACE "log_data"
 #define MAX_ENTRIES   100
+
+static bool log_transmission_active = false;
+static bool log_sending_in_progress = false;
 
 static const char *TAG = "LOG_BLE";
 
@@ -28,6 +34,11 @@ void log_ble_init(uint64_t *interval_ptr) {
         if (err == ESP_OK) {
             log_count = required_size / sizeof(LogEntry);
             ESP_LOGI(TAG, "Log restaurado com %d entradas", (int)log_count);
+        } else if (err == ESP_ERR_NVS_NOT_FOUND) {
+            ESP_LOGW(TAG, "Nenhum log encontrado na NVS.");
+            log_count = 0;
+        } else {
+            ESP_LOGE(TAG, "Erro ao ler log da NVS: %s", esp_err_to_name(err));
         }
         nvs_close(nvs);
     }
@@ -78,7 +89,7 @@ size_t log_ble_get_packet(uint8_t *buffer, size_t buffer_size, size_t start_inde
             break;
         }
     }
-
+    
     *next_index = i;
     return stream.bytes_written;
 }
@@ -86,3 +97,119 @@ size_t log_ble_get_packet(uint8_t *buffer, size_t buffer_size, size_t start_inde
 size_t log_ble_get_total_entries(void) {
     return log_count;
 }
+
+void ble_notify_log_ctrl(uint32_t total_entries) {
+    if (conn_handle == BLE_HS_CONN_HANDLE_NONE) return;
+
+    LogControl ctrl = LogControl_init_zero;
+    ctrl.command = LogControl_Command_START;
+    ctrl.total_entries = total_entries;
+
+    uint8_t buffer[64];
+    pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+
+    if (pb_encode(&stream, LogControl_fields, &ctrl)) {
+        struct os_mbuf *om = ble_hs_mbuf_from_flat(buffer, stream.bytes_written);
+        if (om) {
+            ble_gattc_notify_custom(conn_handle, log_ctrl_char_handle, om);
+            ESP_LOGI(TAG, "Notify LogControl enviado (total_entries: %d)", total_entries);
+        }
+    } else {
+        ESP_LOGE(TAG, "Erro na serialização do LogControl");
+    }
+}
+
+void ble_send_log_via_notify(void) {
+    if (conn_handle == BLE_HS_CONN_HANDLE_NONE) {
+        ESP_LOGW(TAG, "Sem conexão BLE ativa.");
+        return;
+    }
+
+    if (log_sending_in_progress) {
+        ESP_LOGW(TAG, "Log já está sendo enviado.");
+        return;
+    }
+
+    log_sending_in_progress = true;
+
+    size_t index = 0;
+    size_t next_index = 0;
+
+    while (index < log_ble_get_total_entries()) {
+        uint8_t buffer[256];
+        size_t len = log_ble_get_packet(buffer, sizeof(buffer), index, &next_index);
+
+        if (len > 0) {
+            struct os_mbuf *om = ble_hs_mbuf_from_flat(buffer, len);
+            if (om) {
+                ble_gattc_notify_custom(conn_handle, log_char_handle, om);
+                ESP_LOGI(TAG, "Notify Log (%d bytes) enviado. Index: %d", (int)len, (int)index);
+            }
+        }
+
+        index = next_index;
+
+        // Pequeno delay para não saturar o link BLE
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
+
+    ESP_LOGI(TAG, "Envio de log concluído.");
+    log_sending_in_progress = false;
+}
+
+// ==============================
+// Callback Log GATT
+// ==============================
+int log_gatt_access_cb(uint16_t conn, uint16_t attr_handle,
+                              struct ble_gatt_access_ctxt *ctxt, void *arg) {
+    if (attr_handle == log_char_handle) {
+        return BLE_ATT_ERR_READ_NOT_PERMITTED;
+    }
+
+    if (attr_handle == log_ctrl_char_handle) {
+        if (ctxt->op == BLE_GATT_ACCESS_OP_WRITE_CHR) {
+            LogControl ctrl = LogControl_init_zero;
+            uint8_t temp_buf[32];
+            uint16_t data_len = OS_MBUF_PKTLEN(ctxt->om);
+
+            os_mbuf_copydata(ctxt->om, 0, data_len, temp_buf);
+
+            pb_istream_t stream = pb_istream_from_buffer(temp_buf, data_len);
+            if (pb_decode(&stream, LogControl_fields, &ctrl)) {
+                ESP_LOGI(TAG, "Comando LogControl recebido: %d", ctrl.command);
+
+                switch (ctrl.command) {
+                case LogControl_Command_START:
+                    log_transmission_active = true;
+                    ESP_LOGI(TAG, "Log START");
+
+                    // Envia total de registros antes de iniciar envio
+                    ble_notify_log_ctrl(log_ble_get_total_entries());
+                    ble_send_log_via_notify();
+                    break;
+
+                case LogControl_Command_STOP:
+                    log_transmission_active = false;
+                    ESP_LOGI(TAG, "Log STOP");
+                    break;
+
+                case LogControl_Command_CLEAR:
+                    log_ble_clear();
+                    ESP_LOGI(TAG, "Log CLEAR");
+                    break;
+
+                default:
+                    ESP_LOGW(TAG, "Comando desconhecido: %d", ctrl.command);
+                    break;
+                }
+                return 0;
+            } else {
+                ESP_LOGE(TAG, "Falha na desserialização LogControl");
+                return BLE_ATT_ERR_UNLIKELY;
+            }
+        }
+    }
+
+    return BLE_ATT_ERR_UNLIKELY;
+}
+

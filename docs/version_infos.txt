@@ -1,0 +1,4 @@
+idf.openOcdConfigs: board/esp32-wrover-kit-3.3v.cfg
+chip: ESP32-WROOM-32D
+ESP-IDF Version: 6.0.0
+

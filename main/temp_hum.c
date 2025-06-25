@@ -45,7 +45,7 @@ static void generate_temp_hum_data(void)
     //Notifica BLE
     ble_notify_sensor();
 
-    // ✅ Salvar no log
+    // Salva no log
     log_ble_add_entry(temperature, humidity, timestamp);
 
 }
