@@ -10,6 +10,7 @@
 extern uint16_t conn_handle;
 extern uint16_t log_char_handle;
 extern uint16_t log_ctrl_char_handle;
+extern uint64_t interval;
 
 void ble_init(void);
 void ble_start(void);
