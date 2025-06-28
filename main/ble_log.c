@@ -1,20 +1,17 @@
-#include "log_ble.h"
-#include "sensor.pb.h"
-#include "nvs_flash.h"
-#include "nvs.h"
-#include "esp_log.h"
-#include "pb_encode.h"
-#include "pb_decode.h"
-#include "host/ble_hs.h"
-#include "ble.h"
+#include "ble_log.h"
+#include "ble_live.h"
+#include "ble_gatt.h"
 
 #define LOG_NAMESPACE "log_data"
 #define MAX_ENTRIES   100
 
-static bool log_transmission_active = false;
-static bool log_sending_in_progress = false;
 
 static const char *TAG = "LOG_BLE";
+uint16_t log_char_handle = 0;
+uint16_t log_ctrl_char_handle = 0;
+
+static bool log_transmission_active = false;
+static bool log_sending_in_progress = false;
 
 typedef struct {
     float temperature;

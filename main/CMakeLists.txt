@@ -1,9 +1,10 @@
 idf_component_register(
     SRCS 
         "main.c"
-        "ble.c"
+        "ble_gatt.c"
+        "ble_live.c"
+        "ble_log.c"
         "temp_hum.c"
-        "log_ble.c"
         "sensor.pb.c"
         "serial.c"
     INCLUDE_DIRS "."

@@ -1,12 +1,6 @@
 #include "temp_hum.h"
-#include "ble.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include "esp_log.h"
-#include "esp_timer.h"
-
-#include "log_ble.h"
+#include "ble_live.h"
+#include "ble_log.h"
 
 static const char *TAG = "TEMP_HUM";
 

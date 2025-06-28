@@ -19,6 +19,8 @@
   "idf.flashType": "UART",
   "files.associations": {
     "esp_timer.h": "c",
-    "nimble_port_freertos.h": "c"
+    "nimble_port_freertos.h": "c",
+    "nimble_port.h": "c",
+    "stdlib.h": "c"
   }
 }

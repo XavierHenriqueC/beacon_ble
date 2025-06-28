@@ -4,7 +4,10 @@
 #include "nvs_flash.h"
 #include "esp_log.h"
 
-#include "ble.h"
+#include "ble_live.h"
+#include "ble_gatt.h"
+#include "ble_log.h"
+
 
 void app_main(void)
 {
