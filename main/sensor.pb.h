@@ -10,27 +10,37 @@
 #endif
 
 /* Enum definitions */
+typedef enum _SensorConfig_Log_mode {
+    SensorConfig_Log_mode_NEVER = 0,
+    SensorConfig_Log_mode_ALWAYS = 1,
+    SensorConfig_Log_mode_DEFINED = 3
+} SensorConfig_Log_mode;
+
 typedef enum _LogControl_Command {
     LogControl_Command_START = 0,
     LogControl_Command_STOP = 1,
-    LogControl_Command_CLEAR = 2
+    LogControl_Command_CLEAR = 2,
+    LogControl_Command_NEXT = 3,
+    LogControl_Command_GETLENGTH = 4
 } LogControl_Command;
 
 /* Struct definitions */
 typedef struct _SensorData {
+    uint64_t timestamp;
     float temperature;
     float humidity;
-    uint64_t timestamp;
-    uint64_t interval;
 } SensorData;
 
-typedef struct _LogPacket {
-    pb_callback_t entries;
-} LogPacket;
+typedef struct _SensorConfig {
+    uint64_t interval;
+    SensorConfig_Log_mode log_mode;
+    uint64_t date_time_init;
+    uint64_t date_time_stop;
+} SensorConfig;
 
 typedef struct _LogControl {
     LogControl_Command command;
-    uint32_t total_entries; /* <-- Campo adicionado para informar quantidade de logs */
+    uint32_t length;
 } LogControl;
 
 
@@ -39,67 +49,75 @@ extern "C" {
 #endif
 
 /* Helper constants for enums */
+#define _SensorConfig_Log_mode_MIN SensorConfig_Log_mode_NEVER
+#define _SensorConfig_Log_mode_MAX SensorConfig_Log_mode_DEFINED
+#define _SensorConfig_Log_mode_ARRAYSIZE ((SensorConfig_Log_mode)(SensorConfig_Log_mode_DEFINED+1))
+
 #define _LogControl_Command_MIN LogControl_Command_START
-#define _LogControl_Command_MAX LogControl_Command_CLEAR
-#define _LogControl_Command_ARRAYSIZE ((LogControl_Command)(LogControl_Command_CLEAR+1))
+#define _LogControl_Command_MAX LogControl_Command_GETLENGTH
+#define _LogControl_Command_ARRAYSIZE ((LogControl_Command)(LogControl_Command_GETLENGTH+1))
 
 
+#define SensorConfig_log_mode_ENUMTYPE SensorConfig_Log_mode
 
 #define LogControl_command_ENUMTYPE LogControl_Command
 
 
 /* Initializer values for message structs */
-#define SensorData_init_default                  {0, 0, 0, 0}
-#define LogPacket_init_default                   {{{NULL}, NULL}}
+#define SensorData_init_default                  {0, 0, 0}
+#define SensorConfig_init_default                {0, _SensorConfig_Log_mode_MIN, 0, 0}
 #define LogControl_init_default                  {_LogControl_Command_MIN, 0}
-#define SensorData_init_zero                     {0, 0, 0, 0}
-#define LogPacket_init_zero                      {{{NULL}, NULL}}
+#define SensorData_init_zero                     {0, 0, 0}
+#define SensorConfig_init_zero                   {0, _SensorConfig_Log_mode_MIN, 0, 0}
 #define LogControl_init_zero                     {_LogControl_Command_MIN, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define SensorData_temperature_tag               1
-#define SensorData_humidity_tag                  2
-#define SensorData_timestamp_tag                 3
-#define SensorData_interval_tag                  4
-#define LogPacket_entries_tag                    1
+#define SensorData_timestamp_tag                 1
+#define SensorData_temperature_tag               2
+#define SensorData_humidity_tag                  3
+#define SensorConfig_interval_tag                1
+#define SensorConfig_log_mode_tag                2
+#define SensorConfig_date_time_init_tag          3
+#define SensorConfig_date_time_stop_tag          4
 #define LogControl_command_tag                   1
-#define LogControl_total_entries_tag             2
+#define LogControl_length_tag                    2
 
 /* Struct field encoding specification for nanopb */
 #define SensorData_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, FLOAT,    temperature,       1) \
-X(a, STATIC,   SINGULAR, FLOAT,    humidity,          2) \
-X(a, STATIC,   SINGULAR, UINT64,   timestamp,         3) \
-X(a, STATIC,   SINGULAR, UINT64,   interval,          4)
+X(a, STATIC,   SINGULAR, UINT64,   timestamp,         1) \
+X(a, STATIC,   SINGULAR, FLOAT,    temperature,       2) \
+X(a, STATIC,   SINGULAR, FLOAT,    humidity,          3)
 #define SensorData_CALLBACK NULL
 #define SensorData_DEFAULT NULL
 
-#define LogPacket_FIELDLIST(X, a) \
-X(a, CALLBACK, REPEATED, MESSAGE,  entries,           1)
-#define LogPacket_CALLBACK pb_default_field_callback
-#define LogPacket_DEFAULT NULL
-#define LogPacket_entries_MSGTYPE SensorData
+#define SensorConfig_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, UINT64,   interval,          1) \
+X(a, STATIC,   SINGULAR, UENUM,    log_mode,          2) \
+X(a, STATIC,   SINGULAR, UINT64,   date_time_init,    3) \
+X(a, STATIC,   SINGULAR, UINT64,   date_time_stop,    4)
+#define SensorConfig_CALLBACK NULL
+#define SensorConfig_DEFAULT NULL
 
 #define LogControl_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, UENUM,    command,           1) \
-X(a, STATIC,   SINGULAR, UINT32,   total_entries,     2)
+X(a, STATIC,   SINGULAR, UINT32,   length,            2)
 #define LogControl_CALLBACK NULL
 #define LogControl_DEFAULT NULL
 
 extern const pb_msgdesc_t SensorData_msg;
-extern const pb_msgdesc_t LogPacket_msg;
+extern const pb_msgdesc_t SensorConfig_msg;
 extern const pb_msgdesc_t LogControl_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define SensorData_fields &SensorData_msg
-#define LogPacket_fields &LogPacket_msg
+#define SensorConfig_fields &SensorConfig_msg
 #define LogControl_fields &LogControl_msg
 
 /* Maximum encoded size of messages (where known) */
-/* LogPacket_size depends on runtime parameters */
 #define LogControl_size                          8
-#define SENSOR_PB_H_MAX_SIZE                     SensorData_size
-#define SensorData_size                          32
+#define SENSOR_PB_H_MAX_SIZE                     SensorConfig_size
+#define SensorConfig_size                        35
+#define SensorData_size                          21
 
 #ifdef __cplusplus
 } /* extern "C" */

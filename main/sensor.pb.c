@@ -9,10 +9,12 @@
 PB_BIND(SensorData, SensorData, AUTO)
 
 
-PB_BIND(LogPacket, LogPacket, AUTO)
+PB_BIND(SensorConfig, SensorConfig, AUTO)
 
 
 PB_BIND(LogControl, LogControl, AUTO)
+
+
 
 
 

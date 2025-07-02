@@ -7,11 +7,17 @@
 #include "ble_live.h"
 #include "ble_gatt.h"
 #include "ble_log.h"
+#include "nvs_controller.h"
+#include "temp_hum.h"
 
 
 void app_main(void)
 {
-    ESP_ERROR_CHECK(nvs_flash_init());
+
+    ESP_LOGI("MAIN", "Iniciando NVS...");
+    nvs_controller_init();
+    temp_hum_init(&interval);
+    ESP_LOGI("MAIN", "NVS rodando...");
 
     ESP_LOGI("MAIN", "Iniciando BLE...");
     ble_init();

@@ -29,7 +29,7 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
              .uuid = BLE_UUID16_DECLARE(0x2A1E),
              .access_cb = gatt_svr_access_cb,
              .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_NOTIFY,
-             .val_handle = &interval_char_handle,
+             .val_handle = &config_char_handle,
          },
          {
              .uuid = BLE_UUID16_DECLARE(0x2A1D),
@@ -151,8 +151,6 @@ void ble_init(void) {
     ble_gatts_add_svcs(gatt_svr_svcs);
 
     ble_hs_cfg.sync_cb = ble_on_sync;
-
-    temp_hum_init(&interval);
 }
 
 void ble_start(void) {

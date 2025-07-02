@@ -3,20 +3,20 @@
   "idf.espIdfPathWin": "C:\\Users\\hxc_h\\esp\\esp-idf",
   "idf.pythonInstallPath": "C:\\Users\\hxc_h\\.espressif\\tools\\idf-python\\3.11.2\\python.exe",
   "idf.openOcdConfigs": [
-    "board/esp32-wrover-kit-3.3v.cfg"
+    "board/esp32c3-builtin.cfg"
   ],
-  "idf.portWin": "COM5",
+  "idf.portWin": "COM3",
   "idf.toolsPathWin": "C:\\Users\\hxc_h\\.espressif",
   "idf.customExtraVars": {
-    "IDF_TARGET": "esp32"
+    "IDF_TARGET": "esp32c3"
   },
   "clangd.path": "C:\\Users\\hxc_h\\.espressif\\tools\\esp-clang\\esp-19.1.2_20250312\\esp-clang\\bin\\clangd.exe",
   "clangd.arguments": [
     "--background-index",
-    "--query-driver=C:\\Users\\hxc_h\\.espressif\\tools\\xtensa-esp-elf\\esp-14.2.0_20241119\\xtensa-esp-elf\\bin\\xtensa-esp32-elf-gcc.exe",
-    "--compile-commands-dir=${workspaceFolder}\\build"
+    "--query-driver=C:\\Users\\hxc_h\\.espressif\\tools\\riscv32-esp-elf\\esp-14.2.0_20241119\\riscv32-esp-elf\\bin\\riscv32-esp-elf-gcc.exe",
+    "--compile-commands-dir=c:\\Users\\hxc_h\\Desktop\\Github\\IoT\\BeaconBLE\\firmware\\espressif_IDE\\beacon_ble\\build"
   ],
-  "idf.flashType": "UART",
+  "idf.flashType": "JTAG",
   "files.associations": {
     "esp_timer.h": "c",
     "nimble_port_freertos.h": "c",

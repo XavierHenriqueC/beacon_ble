@@ -15,9 +15,15 @@
 #include "services/gatt/ble_svc_gatt.h"
 
 
+
 extern uint64_t interval;
+extern uint64_t log_mode; //Always
+extern uint16_t date_time_init;
+extern uint16_t date_time_stop;
+
 extern uint16_t temp_char_handle;
-extern uint16_t interval_char_handle;
+extern uint16_t config_char_handle;
 
 void ble_notify_sensor(void);
+void ble_notify_config(void);
 int gatt_svr_access_cb(uint16_t conn, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg);

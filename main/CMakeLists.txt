@@ -7,6 +7,7 @@ idf_component_register(
         "temp_hum.c"
         "sensor.pb.c"
         "serial.c"
+        "nvs_controller.c"
     INCLUDE_DIRS "."
     REQUIRES 
         bt 

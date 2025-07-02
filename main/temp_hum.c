@@ -1,13 +1,14 @@
 #include "temp_hum.h"
 #include "ble_live.h"
 #include "ble_log.h"
+#include "nvs_controller.h"
 
 static const char *TAG = "TEMP_HUM";
 
 static esp_timer_handle_t timer_handle;
 
-static float temperature = 25.0;
-static float humidity = 50.0;
+static float temperature;
+static float humidity;
 
 static uint64_t *interval_ptr = NULL;
 
@@ -40,7 +41,7 @@ static void generate_temp_hum_data(void)
     ble_notify_sensor();
 
     // Salva no log
-    log_ble_add_entry(temperature, humidity, timestamp);
+    nvs_save_sensor_data(temperature, humidity);
 
 }
 
