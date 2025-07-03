@@ -6,6 +6,7 @@
 #include "esp_log.h"
 
 #include "host/ble_gatt.h"
+#include "host/ble_hs.h"
 
 
 extern uint16_t log_char_handle;

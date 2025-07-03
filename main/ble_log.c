@@ -1,3 +1,4 @@
+#include "ble_gatt.h"
 #include "ble_log.h"
 #include "serial.h"
 #include "nvs_controller.h"

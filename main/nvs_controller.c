@@ -182,15 +182,23 @@ esp_err_t nvs_update_sensor_config(SensorConfig *cfg)
 
 SensorConfig nvs_read_sensor_config(void)
 {
-    SensorConfig cfg;
+    SensorConfig cfg = {
+        .interval = 60, // valor padrão
+        // adicione outros campos default, se houver
+    };
 
     nvs_handle_t handle;
-    ESP_ERROR_CHECK(nvs_open(NVS_NAMESPACE, NVS_READONLY, &handle));
+    esp_err_t err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &handle);
+    if (err != ESP_OK)
+    {
+        ESP_LOGW(TAG, "Namespace ainda não existe: %s", esp_err_to_name(err));
+        return cfg;
+    }
 
     uint8_t buffer[SensorConfig_size];
     size_t len = sizeof(buffer);
 
-    esp_err_t err = nvs_get_blob(handle, NVS_CONFIG_KEY, buffer, &len);
+    err = nvs_get_blob(handle, NVS_CONFIG_KEY, buffer, &len);
     if (err != ESP_OK)
     {
         ESP_LOGW(TAG, "Nenhuma configuração encontrada.");
@@ -198,15 +206,13 @@ SensorConfig nvs_read_sensor_config(void)
         return cfg;
     }
 
-    if (deserializeSensorConfig(buffer, len, &cfg))
+    if (!deserializeSensorConfig(buffer, len, &cfg))
     {
-        nvs_close(handle);
-        return cfg;
-    } else {
         ESP_LOGE(TAG, "Erro ao desserializar SensorConfig.");
-        nvs_close(handle);
-        return cfg;
     }
+
+    nvs_close(handle);
+    return cfg;
 }
 
 void load_sensor_config(void)
