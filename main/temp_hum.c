@@ -1,6 +1,7 @@
 #include "temp_hum.h"
 #include "ble_live.h"
 #include "ble_log.h"
+#include "sth31d.h"
 #include "nvs_controller.h"
 
 static const char *TAG = "TEMP_HUM";
@@ -36,13 +37,6 @@ static void generate_temp_hum_data(void)
     uint64_t timestamp = esp_timer_get_time() / 1000; // Em milissegundos
 
     ESP_LOGI(TAG, "Nova leitura -> Temp: %.2f C | Hum: %.2f %% | Timestamp: %llu", temperature, humidity, timestamp);
-
-    //Notifica BLE
-    ble_notify_sensor();
-
-    // Salva no log
-    nvs_save_sensor_data(temperature, humidity);
-
 }
 
 /// ============================
@@ -50,7 +44,25 @@ static void generate_temp_hum_data(void)
 /// ============================
 static void timer_callback(void *arg)
 {
-    generate_temp_hum_data();
+    // generate_temp_hum_data();
+
+
+    // Leitura sensores STH31D
+    esp_err_t err = sth31_get_temp_hum(&temperature, &humidity);
+    if (err == ESP_OK)
+    {
+        ESP_LOGI(TAG, "Temp: %.2f °C, Hum: %.2f %%", temperature, humidity);
+
+        // Notifica BLE
+        ble_notify_sensor();
+
+        // Salva no log
+        nvs_save_sensor_data(temperature, humidity);
+    }
+    else
+    {
+        ESP_LOGE(TAG, "Erro ao ler sensor: %s", esp_err_to_name(err));
+    }
 
     if (interval_ptr)
     {

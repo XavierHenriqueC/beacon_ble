@@ -4,6 +4,7 @@ idf_component_register(
         "ble_gatt.c"
         "ble_live.c"
         "ble_log.c"
+        "sth31d.c"
         "temp_hum.c"
         "sensor.pb.c"
         "serial.c"
@@ -14,4 +15,5 @@ idf_component_register(
         freertos 
         nvs_flash 
         nanopb
+        driver
 )
