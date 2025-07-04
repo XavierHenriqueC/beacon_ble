@@ -16,28 +16,28 @@ static uint64_t *interval_ptr = NULL;
 /// ============================
 /// Geração dos dados simulados
 /// ============================
-static void generate_temp_hum_data(void)
-{
-    float temp_variation = ((float)(rand() % 100) / 100.0f) - 0.5f;
-    float hum_variation = ((float)(rand() % 100) / 100.0f) - 0.5f;
+// static void generate_temp_hum_data(void)
+// {
+//     float temp_variation = ((float)(rand() % 100) / 100.0f) - 0.5f;
+//     float hum_variation = ((float)(rand() % 100) / 100.0f) - 0.5f;
 
-    temperature += temp_variation;
-    humidity += hum_variation;
+//     temperature += temp_variation;
+//     humidity += hum_variation;
 
-    if (temperature < 15.0f)
-        temperature = 15.0f;
-    if (temperature > 35.0f)
-        temperature = 35.0f;
+//     if (temperature < 15.0f)
+//         temperature = 15.0f;
+//     if (temperature > 35.0f)
+//         temperature = 35.0f;
 
-    if (humidity < 20.0f)
-        humidity = 20.0f;
-    if (humidity > 80.0f)
-        humidity = 80.0f;
+//     if (humidity < 20.0f)
+//         humidity = 20.0f;
+//     if (humidity > 80.0f)
+//         humidity = 80.0f;
 
-    uint64_t timestamp = esp_timer_get_time() / 1000; // Em milissegundos
+//     uint64_t timestamp = esp_timer_get_time() / 1000; // Em milissegundos
 
-    ESP_LOGI(TAG, "Nova leitura -> Temp: %.2f C | Hum: %.2f %% | Timestamp: %llu", temperature, humidity, timestamp);
-}
+//     ESP_LOGI(TAG, "Nova leitura -> Temp: %.2f C | Hum: %.2f %% | Timestamp: %llu", temperature, humidity, timestamp);
+// }
 
 /// ============================
 /// Callback do Timer

@@ -55,7 +55,7 @@ esp_err_t sth31_get_temp_hum(float *temperature, float *humidity) {
     esp_err_t ret = i2c_master_init_once();
     if (ret != ESP_OK) return ret;
 
-    ESP_LOGI(TAG, "Iniciando leitura do sensor");
+    //ESP_LOGI(TAG, "Iniciando leitura do sensor");
 
     // Comando de medição simples (high repeatability, clock stretching disabled)
     uint8_t cmd[] = { 0x24, 0x00 };
@@ -95,7 +95,7 @@ esp_err_t sth31_get_temp_hum(float *temperature, float *humidity) {
     *temperature = -45.0f + 175.0f * ((float)raw_temp / 65535.0f);
     *humidity = 100.0f * ((float)raw_hum / 65535.0f);
 
-    ESP_LOGI(TAG, "Temp: %.2f °C | Hum: %.2f %%", *temperature, *humidity);
+    //ESP_LOGI(TAG, "Temp: %.2f °C | Hum: %.2f %%", *temperature, *humidity);
 
     return ESP_OK;
 }
