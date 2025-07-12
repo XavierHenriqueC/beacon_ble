@@ -159,7 +159,6 @@ esp_err_t nvs_save_sensor_config(SensorConfig *cfg)
     uint8_t buffer[SensorConfig_size];
     size_t len = sizeof(buffer);
 
-    // ⚠️ Use struct inteira, não os campos individualmente!
     if (!serializeSensorConfig(buffer, &len, cfg))
     {
         ESP_LOGE(TAG, "Erro ao serializar SensorConfig.");

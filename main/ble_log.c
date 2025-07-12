@@ -11,7 +11,7 @@ uint16_t log_char_handle;
 uint16_t log_ctrl_char_handle;
 
 // Controle interno
-static bool transfer_active = false;
+bool transfer_active = false;
 static size_t transfer_index = 0;
 static size_t transfer_total = 0;
 static SensorData *log_data_array = NULL;
@@ -154,7 +154,6 @@ int log_gatt_access_cb(uint16_t conn_handle_cb, uint16_t attr_handle,
         }
 
         case LogControl_Command_STOP:
-        case LogControl_Command_CLEAR:
         {
             transfer_active = false;
             transfer_index = 0;
@@ -165,15 +164,26 @@ int log_gatt_access_cb(uint16_t conn_handle_cb, uint16_t attr_handle,
                 log_data_array = NULL;
             }
 
-            if (command.command == LogControl_Command_CLEAR)
+            ESP_LOGI(TAG, "Transferência interrompida.");
+            
+            break;
+        }
+
+
+        case LogControl_Command_CLEAR:
+        {
+            transfer_active = false;
+            transfer_index = 0;
+            transfer_total = 0;
+            if (log_data_array)
             {
-                nvs_clear_all_sensor_data();
-                ESP_LOGI(TAG, "Todos os logs foram apagados.");
+                free(log_data_array);
+                log_data_array = NULL;
             }
-            else
-            {
-                ESP_LOGI(TAG, "Transferência interrompida.");
-            }
+           
+            nvs_clear_all_sensor_data();
+            ESP_LOGI(TAG, "Todos os logs foram apagados.");
+            
             break;
         }
 

@@ -4,6 +4,7 @@
 #include "esp_log.h"             // Para ESP_LOGE
 #include "pb_encode.h"
 #include "pb_decode.h"
+#include "build_time.h"
 
 static const char *TAG = "SERIAL";
 
@@ -21,7 +22,7 @@ bool serializeSensorData(uint8_t *buffer, size_t *length, float temp, float hum)
     pb_ostream_t stream = pb_ostream_from_buffer(buffer, *length);
     SensorData data = SensorData_init_zero;
 
-    data.timestamp = esp_timer_get_time() / 1000000ULL; // Em segundos
+    data.timestamp = esp_timer_get_time() / 1000000ULL + BUILD_UNIX_TIMESTAMP; // Em segundos
     data.temperature = temp;
     data.humidity = hum;
 
